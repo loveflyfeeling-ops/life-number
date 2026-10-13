@@ -7,18 +7,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: 左側輸入與紀錄、右側命盤（九宮格為主視覺）＋分頁解讀；窄螢幕單欄堆疊 */
+/* Layout: 左側輸入與紀錄、右側命盤（含 0 的九宮格為主視覺，○先天 △後天 □生命數）＋分頁解讀；窄螢幕單欄 */
 :root{
   --bg:#eef1f4; --surface:#ffffff; --ink:#1b2430; --muted:#5d6876; --line:#d3dae2;
-  --accent:#2f5d8a; --accent-soft:#e1eaf3; --gold:#a8792a; --gold-soft:#f4ead8; --on:#ffffff;
+  --accent:#2f5d8a; --accent-soft:#e1eaf3; --gold:#a8792a; --gold-soft:#f4ead8; --warn:#b5482f; --warn-soft:#f7e3dd; --on:#ffffff;
   --display:"Noto Serif TC","Songti TC",serif; --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif; --mono:"DM Mono",ui-monospace,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#11161d; --surface:#1a212b; --ink:#e6ebf1; --muted:#9aa6b4; --line:#2c3644;
-  --accent:#7fb0de; --accent-soft:#1f3248; --gold:#e0b064; --gold-soft:#3a2f1c; --on:#0f141a; color-scheme:dark}}
+  --accent:#7fb0de; --accent-soft:#1f3248; --gold:#e0b064; --gold-soft:#3a2f1c; --warn:#ec8a6f; --warn-soft:#3b2420; --on:#0f141a; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#11161d; --surface:#1a212b; --ink:#e6ebf1; --muted:#9aa6b4; --line:#2c3644;
-  --accent:#7fb0de; --accent-soft:#1f3248; --gold:#e0b064; --gold-soft:#3a2f1c; --on:#0f141a; color-scheme:dark}
+  --accent:#7fb0de; --accent-soft:#1f3248; --gold:#e0b064; --gold-soft:#3a2f1c; --warn:#ec8a6f; --warn-soft:#3b2420; --on:#0f141a; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.7;padding-inline:16px;padding-block:20px 48px}
 .wrap{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:300px minmax(0,1fr);gap:24px;align-items:start}
@@ -27,7 +27,7 @@ header.top{max-width:1120px;margin:0 auto 18px;display:flex;align-items:baseline
 h1{font-family:var(--display);font-weight:900;font-size:clamp(26px,4vw,34px);margin:0;letter-spacing:.04em}
 header.top p{margin:0;color:var(--muted)}
 h2{font-family:var(--display);font-size:20px;margin:0 0 10px;text-wrap:balance}
-h3{font-family:var(--display);font-size:16px;margin:16px 0 6px}
+h3{font-family:var(--display);font-size:16px;margin:18px 0 6px}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
 aside{display:flex;flex-direction:column;gap:16px}
 label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px;letter-spacing:.04em}
@@ -53,7 +53,7 @@ button.primary{background:var(--accent);border-color:var(--accent);color:var(--o
 .empty{color:var(--muted);font-size:13px}
 main{display:flex;flex-direction:column;gap:20px;min-width:0}
 .chart{display:grid;grid-template-columns:auto minmax(0,1fr);gap:28px;align-items:center}
-@media (max-width:620px){.chart{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){.chart{grid-template-columns:minmax(0,1fr)}}
 .who{font-size:13px;color:var(--muted)}
 .who b{color:var(--ink);font-size:16px;font-family:var(--display)}
 .big{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;margin:8px 0 4px}
@@ -61,40 +61,55 @@ main{display:flex;flex-direction:column;gap:20px;min-width:0}
 .big dl{margin:0;display:grid;grid-template-columns:auto auto;gap:2px 12px;font-size:14px}
 .big dt{color:var(--muted)} .big dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums}
 .kw{display:inline-block;background:var(--gold-soft);color:var(--gold);border-radius:999px;padding:2px 12px;font-weight:700;font-size:14px}
-.formula{font-family:var(--mono);font-size:13px;color:var(--muted);word-break:break-all}
-.grid9{position:relative;width:228px;height:228px;max-width:100%}
+.formula{font-family:var(--mono);font-size:13px;color:var(--muted);word-break:break-all;margin:8px 0 0}
+.board{display:flex;flex-direction:column;align-items:center;gap:6px;width:252px;max-width:100%}
+.grid9{position:relative;width:252px;height:252px;max-width:100%}
 .grid9 svg{position:absolute;inset:0;width:100%;height:100%}
 .cells{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
-.cell{display:flex;align-items:center;justify-content:center;position:relative}
-.cell .n{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:22px;color:var(--muted);border:1px dashed var(--line);background:var(--surface);position:relative;z-index:1}
-.cell.on .n{color:var(--ink);border:2px solid var(--accent);font-weight:500}
+.cell{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative}
+.n{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:22px;color:var(--muted);border:1px dashed var(--line);background:var(--surface);position:relative;z-index:1}
+.cell.on .n,.zero.on .n{color:var(--ink);border:2px solid var(--accent);font-weight:500}
 .cell.main .n{background:var(--gold);border-color:var(--gold);color:var(--on)}
-.cell .cnt{position:absolute;top:6px;right:10px;font-family:var(--mono);font-size:11px;color:var(--accent);z-index:2}
-.legend{font-size:12px;color:var(--muted);margin-top:8px;display:flex;gap:12px;flex-wrap:wrap}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
-.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:16px}
-.tabs button{border:none;background:none;border-bottom:2px solid transparent;border-radius:0;padding:8px 10px;color:var(--muted)}
+.marks{font-family:var(--mono);font-size:11px;color:var(--accent);min-height:15px;letter-spacing:.04em;position:relative;z-index:1;background:var(--surface);padding:0 3px;border-radius:3px}
+.zero{display:flex;align-items:center;gap:8px}
+.zero .n{width:40px;height:40px;font-size:18px}
+.legend{font-size:12px;color:var(--muted);margin-top:6px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.tabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:16px}
+.tabs button{border:none;background:none;border-bottom:2px solid transparent;border-radius:0;padding:8px 9px;color:var(--muted)}
 .tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
 .prose{max-width:68ch}
 .prose p{margin:0 0 10px}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
 .card{border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-width:0}
-.card h4{margin:0 0 4px;font-family:var(--display);font-size:15px;display:flex;justify-content:space-between;gap:8px}
+.card h4{margin:0 0 4px;font-family:var(--display);font-size:15px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .card p{margin:0;font-size:14px;color:var(--muted)}
 .card.hit{border-color:var(--accent);background:var(--accent-soft)}
 .card.hit p{color:var(--ink)}
+.card ul{margin:6px 0 0;padding-left:1.1em;font-size:14px}
 .tag{font-family:var(--mono);font-size:12px;color:var(--accent)}
-.swatch{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-.swatch .chip{width:64px;height:64px;border-radius:8px;border:1px solid var(--line)}
+.pill{display:inline-block;font-size:12px;border-radius:999px;padding:0 8px;border:1px solid currentColor;margin-left:4px}
+.pill.warn{color:var(--warn)} .pill.ok{color:var(--accent)} .pill.gold{color:var(--gold)}
+.swatch{display:flex;gap:14px;align-items:center}
+.swatch .chip{width:56px;height:56px;border-radius:8px;border:1px solid var(--line);flex:none}
 table{border-collapse:collapse;width:100%;font-size:14px}
 .tbl{overflow-x:auto}
 th,td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
-th{color:var(--muted);font-weight:500;font-size:13px}
+th{color:var(--muted);font-weight:500;font-size:13px;white-space:nowrap}
 td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 tr.now td{background:var(--gold-soft)}
+tr.lack td{background:var(--warn-soft)}
 .note{font-size:12px;color:var(--muted);margin-top:12px}
 .ul{margin:0;padding-left:1.2em}
+.ul li{margin-bottom:4px}
 .combo{font-family:var(--mono);font-size:18px;color:var(--gold);letter-spacing:.08em}
+.kv{display:grid;grid-template-columns:7em minmax(0,1fr);gap:6px 12px;margin:0}
+.kv dt{color:var(--muted);font-size:14px}.kv dd{margin:0}
+.hero-year{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.hero-year .yn{font-family:var(--display);font-size:56px;font-weight:900;color:var(--gold);line-height:1}
+.goalbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.goalbar button[aria-pressed="true"]{background:var(--accent);color:var(--on);border-color:var(--accent)}
+.nums{display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums}
+.nums .hl{color:var(--gold);font-weight:500}
 @media (prefers-reduced-motion:no-preference){.cell.on .n{transition:transform .2s}.cell.on:hover .n{transform:scale(1.06)}}
 </style>
 </head>
@@ -102,7 +117,7 @@ tr.now td{background:var(--gold-soft)}
 
 <header class="top">
   <h1>生命靈數盤</h1>
-  <p>輸入西元生日，算出主命數、九宮連線、流年流月與開運數字組合</p>
+  <p>輸入西元生日，排出先天、後天、生命靈動數九宮命盤與十大解析</p>
 </header>
 
 <div class="wrap">
@@ -140,20 +155,21 @@ tr.now td{background:var(--gold-soft)}
 <main>
   <section class="panel">
     <div class="chart">
-      <div>
-        <div class="grid9" id="g9">
-          <svg viewBox="0 0 228 228" id="lines" aria-hidden="true"></svg>
+      <div class="board">
+        <div class="zero" id="zero"></div>
+        <div class="grid9">
+          <svg viewBox="0 0 252 252" id="lines" aria-hidden="true"></svg>
           <div class="cells" id="cells"></div>
         </div>
-        <div class="legend"><span><i style="background:var(--gold)"></i>主命數</span><span><i style="border:2px solid var(--accent)"></i>出現的數字</span><span><i style="border:1px dashed var(--muted)"></i>空缺數</span></div>
+        <div class="legend"><span>○ 先天數</span><span>△ 後天數</span><span>□ 生命靈動數</span><span>虛線＝缺數</span></div>
       </div>
       <div style="min-width:0">
         <div class="who" id="who"></div>
         <div class="big">
           <div class="main" id="mainNum">–</div>
           <dl>
-            <dt>先天數</dt><dd id="xian">–</dd>
-            <dt>後天數</dt><dd id="hou">–</dd>
+            <dt>先天數 ○</dt><dd id="xian">–</dd>
+            <dt>後天數 △</dt><dd id="hou">–</dd>
             <dt>生日數</dt><dd id="bday">–</dd>
             <dt>流年數</dt><dd id="lny">–</dd>
           </dl>
@@ -172,38 +188,157 @@ tr.now td{background:var(--gold-soft)}
 </div>
 
 <script>
+/* ===== 1–9 號人資料 ===== */
 const N={
-1:{kw:"開創・領導",trait:"獨立、果斷、有主見，喜歡走在前面開路。做事講求效率，不愛被指揮，天生帶有開拓者的氣勢。",good:"行動力強、勇於負責、目標明確",lesson:"容易固執己見、急躁，需學會傾聽與分工",job:"創業、管理、業務開發、自由業",love:"重視被尊重，需要能欣賞其能力又保有自我的伴侶",color:"紅色",hex:"#c8423b",cmean:"熱情與行動力，提振氣勢",body:"頭部、心血管",west:"The Leader：個人意志與起點，象徵太陽的能量"},
-2:{kw:"協調・溫柔",trait:"細膩敏感、善解人意，是天生的協調者。重視關係與和諧，擅長在人與人之間搭起橋樑。",good:"體貼、耐心、合作力佳",lesson:"缺乏自信、容易依賴或猶豫不決",job:"諮詢輔導、行政秘書、公關、教育、護理",love:"感情豐富，需要安全感與陪伴",color:"橙色",hex:"#d9822b",cmean:"溫暖與安定，增加親和力",body:"腎臟、泌尿系統",west:"The Peacemaker：二元與合作，象徵月亮的柔性"},
-3:{kw:"創意・表達",trait:"活潑樂觀、反應快、表達力強。想法多又富有幽默感，走到哪裡都容易成為氣氛的中心。",good:"創造力、口才、感染力",lesson:"三分鐘熱度、注意力分散，需練習專注與完成",job:"設計、藝術、行銷、媒體、演講教學",love:"喜歡有趣、能交流的伴侶，怕無聊",color:"黃色",hex:"#d6b02b",cmean:"明亮與自信，激發靈感",body:"肝膽、神經系統",west:"The Communicator：自我表達與喜悅，對應木星的擴張"},
-4:{kw:"務實・穩定",trait:"踏實可靠、按部就班，重視規則與秩序。做事有條理，是團隊中最讓人放心的基石。",good:"穩重、守信、執行力佳",lesson:"較保守、不易變通，需學習接受變化",job:"工程、會計、行政管理、技術職、公職",love:"重承諾，以實際行動表達關心",color:"綠色",hex:"#4f8f4a",cmean:"平衡與成長，帶來穩定感",body:"腸胃、骨骼",west:"The Builder：結構與基礎，四方穩固之數"},
-5:{kw:"自由・變化",trait:"好奇心旺盛、喜歡新鮮感與冒險，適應力強。需要空間與彈性，討厭一成不變。",good:"靈活、敢嘗試、交際手腕好",lesson:"缺乏耐性、容易衝動，需學習自律",job:"旅遊、業務、媒體、貿易、自媒體",love:"需要自由與新鮮感，不喜歡被束縛",color:"藍色",hex:"#3a78b8",cmean:"開闊與溝通，幫助冷靜思考",body:"脾胃、皮膚",west:"The Adventurer：五感與變動，象徵水星的機敏"},
-6:{kw:"責任・關愛",trait:"顧家、有責任感，樂於照顧身邊的人。重視家庭與美感，是大家口中的好照顧者。",good:"包容、負責、具審美能力",lesson:"容易操心過度、想掌控，需學會放手",job:"教育、醫護照顧、設計美學、餐飲服務",love:"以家庭為重，付出多也期待被珍惜",color:"靛色",hex:"#3d4f9a",cmean:"直覺與安穩，平衡情緒",body:"生殖、內分泌系統",west:"The Nurturer：愛與責任，對應金星的和諧"},
-7:{kw:"分析・探索",trait:"理性冷靜、愛追根究柢，喜歡獨處思考。對知識與真理有強烈渴望，觀察力敏銳。",good:"洞察力、專業度、獨立思考",lesson:"容易懷疑、疏離，需學習信任與分享",job:"研究、技術開發、分析師、身心靈、寫作",love:"慢熱，需要心靈層次的契合",color:"紫色",hex:"#7a4fa0",cmean:"智慧與靈性，幫助沉澱",body:"呼吸道、肺部",west:"The Seeker：內省與智慧，象徵海王星的神秘"},
-8:{kw:"權力・財富",trait:"企圖心強、具商業頭腦與管理能力，重視成就與物質回報，擅長整合資源。",good:"魄力、決斷、理財能力",lesson:"容易重視結果勝過感受，需學習平衡工作與生活",job:"經營管理、金融、不動產、法律",love:"重視實際條件，以照顧對方生活表達愛",color:"金色",hex:"#b8902f",cmean:"豐盛與權威，強化財運",body:"骨骼關節、肌肉",west:"The Powerhouse：物質與權威，對應土星的紀律"},
-9:{kw:"博愛・理想",trait:"心胸寬大、富同理心，具理想與藝術氣質。關心群體與社會，常想為他人做些什麼。",good:"慈悲、包容、視野開闊",lesson:"容易理想化或過度付出，需照顧自己",job:"公益、教育、醫療、藝術、宗教文化",love:"浪漫重感覺，容易為愛犧牲",color:"白色",hex:"#e6e6e6",cmean:"純淨與圓滿，幫助釋放",body:"眼睛、循環系統",west:"The Humanitarian：圓滿與奉獻，象徵火星的熱忱"}
+1:{kw:"開創・領導",tags:"獨立、果斷、好勝、主觀、急性子",
+ trait:"有主見、行動快，喜歡走在最前面開路。做事講求效率，不愛被指揮，遇到挑戰反而更有鬥志，是天生的開拓者。",
+ weak:"太相信自己的判斷，容易聽不進別人的意見；求好心切時口氣衝、沒耐性，讓身邊的人有壓力。一個人扛下所有事，也常讓自己孤軍奮戰。",
+ love:"希望被欣賞與尊重，喜歡主導關係。適合能肯定你的能力、又有自己生活重心的伴侶，太黏或太依賴的對象會讓你喘不過氣。",
+ job:"創業、主管、業務開發、專案負責人、自由業、運動或競技相關工作。",
+ mission:"學會帶領而不是指揮，用自己的勇氣開出一條路，讓後面的人跟得上。",
+ learn:"放慢腳步、學習傾聽與分工，懂得讚美別人。",talk:"給他選擇權與面子，直接講重點與目標，不要拐彎抹角。",
+ sell:"1 號人想要「我做主」的感覺：強調獨特、領先、第一個擁有，讓他自己做決定。",
+ color:"紅色",hex:"#c8423b",cmean:"熱情與行動力，提振氣勢",
+ lack:"缺 1：較缺自信與主動，做決定時容易退縮，需要別人推一把。",add:"想更有魄力、敢於開創 → 補 1",
+ after:"△1 轉成 ○1：把衝勁用在目標上，先聽完再下判斷，領導力就會被大家認可。",
+ planet:"太陽",west:"代表自我、意志與起點"},
+2:{kw:"協調・溫柔",tags:"重感情、體貼、依賴、被動、情緒化",
+ trait:"非常重視人際關係，別人開心你也開心。習慣站在幕後當參謀，細心、溫和、善解人意，是天生的公關與協調者。",
+ weak:"太在意別人的期待與評價，常把自己擺在最後，累了也不說；猶豫不決、拿不定主意，容易被身邊的人左右方向。",
+ love:"很需要陪伴與安全感，戀愛時非常貼心。要找一個同樣會為你著想的人，避免單方面付出。",
+ job:"服務業、公關、客服、行政秘書、幕僚、助理、照顧與輔導相關工作。",
+ mission:"成為好的夥伴與支持者，用溫柔把人與人連結在一起。",
+ learn:"學習獨立做決定，練習說出自己真正的需要。",talk:"先建立信任，多溝通、多確認，給他時間與家人商量。",
+ sell:"2 號人在意身邊人的看法：先取得家人或伴侶的認同，強調保障與安心。",
+ color:"橙色",hex:"#d9822b",cmean:"溫暖與安定，增加親和力",
+ lack:"缺 2：較不擅長察覺別人感受，合作時容易各做各的。",add:"想擁有好人緣、好合作 → 補 2",
+ after:"△2 轉成 ○2：多帶笑容、主動參加聚會，把細心變成照顧人的能力，人際就會打開。",
+ planet:"月亮",west:"代表感受、合作與二元平衡"},
+3:{kw:"創意・表達",tags:"活潑、幽默、點子多、三分鐘熱度",
+ trait:"樂觀開朗、反應快，表達與想像力都很好。點子源源不絕，走到哪裡都容易成為氣氛的中心。",
+ weak:"興趣多但容易半途而廢，注意力分散；說話直接，有時口快得罪人。情緒來得快去得也快。",
+ love:"喜歡有趣、能聊天的伴侶，怕無聊。需要對方給你表達與玩樂的空間。",
+ job:"設計、藝術、行銷企劃、媒體、主持、講師、餐飲與娛樂產業。",
+ mission:"用創意與語言帶給別人快樂與啟發。",
+ learn:"練習專注與完成，一次做好一件事。",talk:"氣氛輕鬆、多給讚美，用故事與畫面溝通。",
+ sell:"3 號人買的是「有趣、好看、可以分享」：強調新鮮感與話題性。",
+ color:"黃色",hex:"#d6b02b",cmean:"明亮與自信，激發靈感",
+ lack:"缺 3：表達較木訥，想法說不清楚，人際上容易被誤會。",add:"想擁有好口才、靠表達賺錢 → 補 3",
+ after:"△3 轉成 ○3：把點子寫下來並完成一件，再開始下一件，創意才會變成成果。",
+ planet:"木星",west:"代表擴張、表達與喜悅"},
+4:{kw:"務實・穩定",tags:"踏實、守規矩、保守、固執、重安全感",
+ trait:"按部就班、條理分明，重視秩序與承諾。做事可靠又細心，是團隊裡最讓人放心的基石。",
+ weak:"不喜歡變化，面對新事物比較慢熱；太在意細節與規則，容易顯得固執、缺乏彈性。",
+ love:"不擅長甜言蜜語，但會用實際行動照顧對方，重視長期穩定的關係。",
+ job:"工程、會計、行政管理、技術職、公職、品管、不動產。",
+ mission:"為自己與家人打下穩固的基礎。",
+ learn:"學習接受變化，偶爾放鬆標準。",talk:"給清楚的計畫、數據與步驟，說到做到。",
+ sell:"4 號人要的是「穩當、划算、有保障」：給比較表、實績與長期效益。",
+ color:"綠色",hex:"#4f8f4a",cmean:"平衡與成長，帶來穩定感",
+ lack:"缺 4：做事較隨性、憑感覺，理財與規劃能力需要加強。",add:"想學會理財、累積資產 → 補 4",
+ after:"△4 轉成 ○4：替自己訂可執行的小計畫，按表完成，安全感就會慢慢建立。",
+ planet:"天王星",west:"代表結構、秩序與基礎"},
+5:{kw:"自由・變化",tags:"好奇、愛冒險、適應力強、沒耐性",
+ trait:"喜歡新鮮感與自由，適應力強、交際手腕好，對世界充滿好奇，總想去看看不一樣的風景。",
+ weak:"討厭被綁住，容易衝動或虎頭蛇尾；遇到壓力時想逃開，承諾對你來說是功課。",
+ love:"需要空間與新鮮感，能一起探索、旅行的伴侶最適合。",
+ job:"業務、旅遊、貿易、媒體、自媒體、活動企劃、需要移動的工作。",
+ mission:"在變動中找到方向，把經歷化成智慧。",
+ learn:"練習自律與堅持，把熱情延續下去。",talk:"不要給太多限制，給選項與彈性。",
+ sell:"5 號人要「新鮮、自由、有彈性」：強調體驗、限量與機動性。",
+ color:"藍色",hex:"#3a78b8",cmean:"開闊與溝通，幫助冷靜思考",
+ lack:"缺 5：比較被動、信心容易動搖，遇到困難容易找理由放棄。",add:"想懂行銷、能靈活應變 → 補 5",
+ after:"△5 轉成 ○5：替自由加上目標，每段經歷都留下成果。",
+ planet:"水星",west:"代表溝通、變動與五感"},
+6:{kw:"責任・關愛",tags:"顧家、有愛心、追求完美、愛操心",
+ trait:"有責任感、樂於照顧人，重視家庭與美感。常是朋友圈裡的照顧者，也很有品味。",
+ weak:"付出太多又期待回報，容易操心、愛管；追求完美，對自己和別人都要求高。",
+ love:"以家庭為重，愛得很深也很投入，需要被珍惜與肯定。",
+ job:"教育、醫護照顧、社工、室內設計、美容美學、餐飲服務。",
+ mission:"用愛與責任守護家人與身邊的人。",
+ learn:"學會放手與信任，照顧別人也要照顧自己。",talk:"先表達關心與感謝，再談事情。",
+ sell:"6 號人想要「為家人好」：強調家庭、健康與美感。",
+ color:"靛色",hex:"#3d4f9a",cmean:"直覺與安穩，平衡情緒",
+ lack:"缺 6：個性較急、較以自我為中心，融入團體比較慢。",add:"想擁有愛心、家庭圓滿 → 補 6",
+ after:"△6 轉成 ○6：把操心換成實際的協助，給別人空間，關係會更好。",
+ planet:"金星",west:"代表愛、和諧與責任"},
+7:{kw:"分析・探索",tags:"理性、追根究柢、獨立、懷疑、慢熱",
+ trait:"冷靜理性、觀察入微，喜歡獨處與思考，對知識和真相有強烈渴望，容易在專業領域出頭。",
+ weak:"不輕易相信人，容易想太多、鑽牛角尖；與人保持距離，讓人覺得難以親近。",
+ love:"慢熱，需要心靈上的契合與信任，一旦認定就很專一。",
+ job:"研究、技術開發、工程師、分析師、寫作、醫療、身心靈領域。",
+ mission:"追求真理，成為某個領域的專家。",
+ learn:"學習信任與分享，把想法說出來。",talk:"講邏輯、給證據，留時間讓他思考。",
+ sell:"7 號人要「專業、有根據」：給資料、原理與專家觀點。",
+ color:"紫色",hex:"#7a4fa0",cmean:"智慧與靈性，幫助沉澱",
+ lack:"缺 7：做事較憑感覺，分析與專業深度需要加強。",add:"想擁有專業、成為別人的貴人 → 補 7",
+ after:"△7 轉成 ○7：把懷疑變成研究，學到的東西拿出來分享。",
+ planet:"海王星",west:"代表內省、智慧與神秘"},
+8:{kw:"權力・財富",tags:"企圖心強、有魄力、重成就、好面子",
+ trait:"有商業頭腦與管理能力，目標明確、重視成果，擅長整合資源，常在團體中掌握實權。",
+ weak:"太看重結果與金錢，容易忽略感受；控制欲強，工作與生活難平衡。",
+ love:"會用照顧對方生活來表達愛，重視伴侶的條件與共同目標。",
+ job:"經營管理、金融投資、不動產、法律、企業高階主管。",
+ mission:"創造財富並善用它，帶動更多人一起成功。",
+ learn:"學習柔軟與分享，金錢之外也重視關係。",talk:"談效益、談格局，尊重他的地位。",
+ sell:"8 號人要「有價值、有面子」：強調投資報酬與身分象徵。",
+ color:"金色",hex:"#b8902f",cmean:"豐盛與權威，強化財運",
+ lack:"缺 8：對金錢較無概念，掌控與管理能力需要培養。",add:"想提升財運與管理力 → 補 8",
+ after:"△8 轉成 ○8：把企圖心化成可分享的成果，領導就會有人跟隨。",
+ planet:"土星",west:"代表紀律、物質與權威"},
+9:{kw:"博愛・理想",tags:"熱心、理想化、有同理心、容易過度付出",
+ trait:"心胸寬大、富有同理心，關心群體與社會，有理想也有藝術氣質，常想為別人做些什麼。",
+ weak:"理想太高與現實落差大，容易失望；過度付出、不懂拒絕，把自己累壞。",
+ love:"浪漫重感覺，容易為愛犧牲，要找能彼此扶持的伴侶。",
+ job:"公益、教育、醫療、藝術、宗教文化、顧問與服務業。",
+ mission:"以愛與智慧服務人群，完成一個圓滿的循環。",
+ learn:"學習設定界線，先照顧好自己。",talk:"談理想與意義，讓他看見能幫到誰。",
+ sell:"9 號人要「有意義、能幫助人」：強調價值與對他人的好處。",
+ color:"白色",hex:"#e6e6e6",cmean:"純淨與圓滿，幫助釋放",
+ lack:"缺 9：視野較侷限於自身，對群體的關懷需要培養。",add:"想擁有大格局、受人敬重 → 補 9",
+ after:"△9 轉成 ○9：把熱心放在真正能做到的事上，量力而為。",
+ planet:"火星",west:"代表熱忱、圓滿與奉獻"}
 };
+const ZERO={after:"0 代表忙碌與機緣：事情多、善緣也多。要懂得取捨與休息，把時間排好，才能從忙碌中累積成就。"};
+
+/* ===== 九宮連線 ===== */
 const LINES=[
- {k:"123",name:"藝術線",d:"富有美感與創意，擅長表達，適合藝術、設計等創作領域。"},
- {k:"456",name:"組織線",d:"具組織規劃能力，做事有系統，能把想法落實成計畫。"},
- {k:"789",name:"權力線",d:"企圖心強，具領導與掌控力，有機會在群體中掌權。"},
- {k:"147",name:"物質線",d:"重視實際與物質安全感，賺錢與累積資產的能力佳。"},
- {k:"258",name:"感情線",d:"重感情、念舊，情感細膩，人際與家庭連結深厚。"},
- {k:"369",name:"智慧線",d:"思考敏捷、學習力強，富有想像力與理解力。"},
- {k:"159",name:"事業線",d:"有明確的事業企圖與毅力，願意為目標長期努力。"},
- {k:"357",name:"人緣線",d:"人緣佳、易得貴人，能在人群中如魚得水。"}
+ {k:"123",name:"藝術線",alias:"有藝術細胞",d:"美感與創意佳，擅長表達，適合設計、藝術、創作。"},
+ {k:"456",name:"組織線",alias:"具管理能力",d:"有組織規劃能力，能把想法落實成制度與流程。"},
+ {k:"789",name:"權力線",alias:"事業貴人旺",d:"企圖心強，容易得到上位者提拔，有掌權機會。"},
+ {k:"147",name:"物質線",alias:"後天財運線",d:"重視實際，靠後天努力累積財富，理財意識強。"},
+ {k:"258",name:"感情線",alias:"有情善交際",d:"重感情、念舊，善於交際，人脈與家庭連結深。"},
+ {k:"369",name:"智慧線",alias:"智慧與奉獻",d:"思考敏捷、學習力強，樂於分享所知幫助別人。"},
+ {k:"159",name:"事業線",alias:"工作事業線",d:"目標明確、有毅力，願意為事業長期打拼。"},
+ {k:"357",name:"人緣線",alias:"人緣親和力",d:"親和力佳，容易得到朋友與貴人相助。"},
+ {k:"48",name:"財庫線",alias:"先天財庫線",d:"4 與 8 同時出現，天生有守財與累積資產的能力。"}
 ];
+
+/* ===== 五行與健康 ===== */
+const ORGAN={1:["木","膽","容易緊張、口苦、睡不安穩","少熬夜，練習放鬆"],2:["木","肝","容易疲倦、眼睛酸、抽筋、氣色差","不動怒、不熬夜、情緒穩定"],
+3:["火","小腸","消化吸收不好、腹脹、耳鳴","別求好心切，飲食清淡"],4:["火","心","胸悶、心悸、容易沒力氣","保持平靜，規律運動"],
+5:["土","胃","胃酸、脹氣、胃痛","定時定量，減少壓力"],6:["土","脾","代謝差、容易水腫、貧血","飲食規律，少冰冷"],
+7:["金","大腸","便秘或腹瀉、皮膚長痘","多喝水、多呼吸新鮮空氣"],8:["金","肺","呼吸道、過敏、皮膚乾","避免悶在心裡，多到戶外"],
+9:["水","膀胱","泌尿系統、水分代謝","別憋尿，多喝溫水"],0:["水","腎","容易腰痠、精神不濟、臉色暗沉","少吃鹹、充足睡眠"]};
+const WX=[["木","1、2","膽／肝","企圖心","易怒","戒怒，求定"],["火","3、4","小腸／心","熱忱","易恨","戒恨，求靜"],["土","5、6","胃／脾","自信","易怨","戒怨，求安"],["金","7、8","大腸／肺","收斂","易惱","戒惱，求慮"],["水","9、0","膀胱／腎","多元","易煩","戒煩，求得"]];
+
+/* ===== 流年流月 ===== */
 const YEAR={
-1:["開創年","新循環的開始，適合立定目標、啟動新計畫。"],
-2:["合作年","步調放慢，重視人際與合作，耐心等待時機。"],
-3:["表現年","靈感與社交活躍，適合學習、展現才華。"],
-4:["奠基年","腳踏實地打基礎，工作量大但能累積實力。"],
-5:["變動年","變化與機會並存，可能搬遷、轉職或出遊。"],
-6:["家庭年","家庭、感情與責任是重心，宜照顧關係。"],
-7:["沉澱年","向內探索、進修充電，宜思考不宜冒進。"],
-8:["收穫年","努力轉為成果，財務與事業有表現機會。"],
-9:["完成年","整理與告別的一年，放下舊事為新循環做準備。"]
+1:{n:"新生開創期",d:"新的九年循環開始，適合立定目標、啟動新計畫、換新環境。主動出擊會有好的開頭。",biz:["今年開發新客戶最有利，名單要擴大","設定全年目標並公開承諾","別等時機成熟，先做再修正"]},
+2:{n:"蓄勢等待期",d:"步調放慢，重點在合作與人際。很多事要等待時機，耐心經營關係，種子正在土裡生根。",biz:["以服務與關心老客戶為主","找合作夥伴，團隊作戰","避免急著成交，先建立信任"]},
+3:{n:"明顯萌芽期",d:"前兩年播的種子開始發芽，人緣與桃花旺、出外機會多、點子多，適合靠口才和表達拓展事業。要注意說話分寸與交通安全。",biz:["今年很有說服力，多辦活動增加曝光","說話語氣放軟，避免口舌是非","以交朋友為前提累積人脈"]},
+4:{n:"穩固扎根期",d:"腳踏實地的一年，工作量大但能打穩基礎。適合整理財務、進修證照、建立制度。",biz:["建立 SOP 與客戶資料系統","穩紮穩打，不要冒進","把承諾的事一一兌現"]},
+5:{n:"變動轉折期",d:"變化與機會同時出現，可能換工作、搬家、出遠門。保持彈性，但重大決定要想清楚。",biz:["嘗試新的通路或產品","把握突然出現的機會","注意合約與細節，避免衝動"]},
+6:{n:"關係經營期",d:"家庭、感情與責任是重心，適合照顧家人、經營伴侶關係，也容易有婚嫁或置產的機會。",biz:["用服務與口碑帶來轉介紹","照顧好團隊成員","以家庭需求為切入點"]},
+7:{n:"沉澱內省期",d:"向內探索的一年，適合進修、研究、調整方向。不宜大舉擴張，先把專業練扎實。",biz:["加強專業知識與證照","整理過去的經驗與名單","重質不重量"]},
+8:{n:"豐收成果期",d:"努力轉為成果，事業與財務有表現的機會，也容易得到升遷或貴人提拔。注意不要過度擴張。",biz:["今年業績有機會衝高，目標可以訂大","爭取主管或大客戶的支持","賺到的錢記得留一部分"]},
+9:{n:"圓滿結束期",d:"九年循環的結尾，適合整理、放下與告別，把不需要的人事物清掉，為下一個循環做準備。",biz:["結案與收尾，清理不良客戶","回饋與感謝老客戶","思考下一階段的方向"]}
 };
+const MONTH={1:["積極月","企圖心強、主動性高，努力會有好成果。"],2:["紅鸞月","異性緣與合作機會多，人際有進展，注意花費。"],3:["人際月","適合出外交友、參加活動、多運動旅行。"],
+4:["行銷月","務實規劃、充分準備，開口推廣容易有亮眼成績。"],5:["休息月","容易想多做少、心情散漫，先放鬆再專心。"],6:["活動月","團體活動多，參加越多越能認識好機會。"],
+7:["迷惑月","方向較模糊、內心矛盾，宜沉澱思考、少做重大決定。"],8:["貴人月","容易得到朋友幫助或貴人提拔，主動積極就順利。"],9:["調養月","做事較易受挫、體力差，宜保養身體、變通行事。"]};
+
+/* ===== 心想事成（參考網站的吉祥組合） ===== */
 const GOALS=[
  {t:"功名事業",c:"1468 1934 1946 1958 2456 2549 2798 2943 3268 3296 3542 3549 3578 3841 4157 4358 4628 4657 4832 4856 4925 5162 5174 5198 5428 5468 5741 5942 5978 6241 6734 6741 6758 7256 7325 7349 7562 7598 7825 7849 8325 8342 8349 8641 8957 9134 9146 9158 9428 9457 9628 9632 9725"},
  {t:"官運亨通",c:"1932 1956 2795 2796 2943 3516 3564 3587 4356 4379 5196 5916 5943 5964 5987 6732 7596 8315 8316 8364 9132 9156"},
@@ -214,28 +349,58 @@ const GOALS=[
  {t:"貴人常現",c:"1425 1537 1746 1896 2357 2456 2943 3125 3149 3169 3296 3456 3825 3849 3941 3961 4137 4296 4753 4832 4856 4953 4962 5743 5769 5793 5832 6143 6249 6341 6513 6537 7153 7256 7362 7416 7925 8143 8169 8193 8256 8543 8625 8649 8713 8741 8761 8913 8937 8946 8961 9632 9753 9762 9816 9864"},
  {t:"百事順暢",c:"1256 1364 1453 1743 1864 1925 1943 1978 2156 2349 2369 2715 2739 2741 2746 2816 2849 2864 3496 3562 3579 3641 3716 3764 3957 4179 4216 4325 4378 4395 4532 4693 4725 4769 4793 5139 5146 5187 5216 5249 5264 5396 5413 5437 5461 5643 5739 5896 5962 6253 6357 6543 6579 6725 6743 6749 6795 6857 6932 7125 7149 7169 7193 7395 7432 7456 7539 7541 7546 7625 7649 7813 7861 7913 7941 7943 7961 8139 8296 8357 8362 8379 8432 8456 8516 8564 8653 8753 8943 9125 9143 9178 9257 9356 9832 9856"}
 ].map(g=>({...g,c:g.c.split(" ")}));
-let goalSel=0;
+
+/* ===== 洛書八運（每條和為 15） ===== */
+const LOSHU=[["492","上排"],["357","中排"],["816","下排"],["438","左列"],["951","中列"],["276","右列"],["456","斜線"],["258","斜線"]];
+
+/* ===== 西方觀點 ===== */
+const TAROT=["愚者：自由、新的冒險","魔術師：創造力與行動","女祭司：直覺與內在智慧","皇后：豐盛與滋養","皇帝：秩序與權威","教皇：傳承與信念","戀人：選擇與關係","戰車：意志與前進","力量：溫柔的堅定","隱者：內省與尋找真理","命運之輪：時運轉變、起伏無常","正義：公平與抉擇","吊人：換個角度看世界","死神：結束與重生","節制：調和與平衡","惡魔：慾望與束縛","高塔：突破與覺醒","星星：希望與療癒","月亮：不安與潛意識","太陽：光明與成功","審判：甦醒與召喚","世界：圓滿與完成"];
+const ZOD=[["摩羯座","土星",1,19],["水瓶座","天王星",2,18],["雙魚座","海王星",3,20],["牡羊座","火星",4,19],["金牛座","金星",5,20],["雙子座","水星",6,21],["巨蟹座","月亮",7,22],["獅子座","太陽",8,22],["處女座","水星",9,22],["天秤座","金星",10,23],["天蠍座","冥王星",11,22],["射手座","木星",12,21],["摩羯座","土星",13,0]];
+function zodiac(m,d){for(let i=0;i<12;i++){if(m===ZOD[i][2]&&d<=ZOD[i][3])return ZOD[i];if(m===ZOD[i][2])return ZOD[i+1]}return ZOD[0]}
+
+/* ===== 計算 ===== */
 const red=n=>{while(n>9)n=String(n).split("").reduce((a,b)=>a+ +b,0);return n};
 const dsum=s=>String(s).split("").reduce((a,b)=>a+ +b,0);
 const $=id=>document.getElementById(id);
-const pos={1:[0,0],4:[1,0],7:[2,0],2:[0,1],5:[1,1],8:[2,1],3:[0,2],6:[1,2],9:[2,2]}; // [col,row]
+const pos={1:[0,0],4:[1,0],7:[2,0],2:[0,1],5:[1,1],8:[2,1],3:[0,2],6:[1,2],9:[2,2]};
+const D10=[1,2,3,4,5,6,7,8,9,0];
 
 function calc(y,m,d,base){
   const str=`${y}${String(m).padStart(2,"0")}${String(d).padStart(2,"0")}`;
-  const digits=str.split("").map(Number);
-  const hou=dsum(str);                // 後天數（總和）
-  const main=red(hou);                // 主命數
-  const all=[...digits,...String(hou).split("").map(Number),main].filter(x=>x>0);
-  const cnt={};for(let i=1;i<=9;i++)cnt[i]=0;all.forEach(x=>cnt[x]++);
-  const lines=LINES.filter(l=>l.k.split("").every(c=>cnt[c]>0));
-  const missing=[1,2,3,4,5,6,7,8,9].filter(i=>!cnt[i]);
+  const xian=str.split("").map(Number);
+  const hou=dsum(str), houD=String(hou).split("").map(Number), main=red(hou);
+  const mk={};D10.forEach(i=>mk[i]={o:0,t:0,s:0});
+  xian.forEach(x=>mk[x].o++); houD.forEach(x=>mk[x].t++); mk[main].s++;
+  const has=i=>mk[i].o+mk[i].t+mk[i].s>0;
+  const lines=LINES.filter(l=>l.k.split("").every(c=>has(+c)));
+  const missing=D10.filter(i=>!has(i));
   const by=base.getFullYear();
   const lnY=n=>red(dsum(m)+dsum(d)+dsum(n));
-  return {str,digits,hou,main,bday:red(d),cnt,lines,missing,ly:lnY(by),lnY,by,bm:base.getMonth()+1,master:[11,22,33].includes(hou)?hou:null};
+  // 洛書八運：只看先天數
+  const xs=new Set(xian);
+  const ls=LOSHU.map(([k,nm])=>({k,nm,miss:k.split("").filter(c=>!xs.has(+c))}));
+  const freq={};ls.forEach(l=>l.miss.forEach(c=>freq[c]=(freq[c]||0)+1));
+  let n1=0,best=-1;Object.keys(freq).sort().forEach(c=>{if(freq[c]>best){best=freq[c];n1=+c}});
+  return {str,xian,hou,houD,main,mk,has,bday:red(d),lines,missing,ly:lnY(by),lnY,by,bm:base.getMonth()+1,master:[11,22,33].includes(hou)?hou:null,ls,freq,n1};
+}
+function perms(a){if(a.length<=1)return [a];const r=[];a.forEach((x,i)=>perms([...a.slice(0,i),...a.slice(i+1)]).forEach(p=>r.push([x,...p])));return r}
+function luckyCombos(R){
+  let base=R.missing.filter(x=>x>0);
+  if(R.n1&&!base.includes(R.n1))base.unshift(R.n1);
+  if(base.length<4){ // 用含 n1 的洛書線補足
+    LOSHU.filter(([k])=>k.includes(String(R.n1))).forEach(([k])=>k.split("").forEach(c=>{if(base.length<4&&!base.includes(+c))base.push(+c)}));
+  }
+  base=base.slice(0,5);
+  const all=perms(base).map(p=>p.join(""));
+  // 不讓相鄰數字相同、挑分散的 9 組
+  const step=Math.max(1,Math.floor(all.length/9));
+  return all.filter((_,i)=>i%step===0).slice(0,9);
 }
 
-let R=null, P=null, tab=0;
-const TABS=["一生特質","後天與生日數","九宮連線","空缺與養生","色彩能量","流年流月","數字開運","心想事成","西方觀點"];
+let R=null,P=null,tab=0,goalSel=0;
+const TABS=["一生特質","後天數特質","九宮連線","先天潛在病源","色彩能量","流年流月","數字改運","心想事成","西方觀點"];
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const markStr=i=>{const x=R.mk[i];return "○".repeat(x.o)+"△".repeat(x.t)+(x.s?"□":"")};
 
 function render(){
   const y=+$("yy").value,m=+$("mm").value,d=+$("dd").value;
@@ -244,84 +409,113 @@ function render(){
   P={name:$("nm").value.trim(),y,m,d,sx:document.querySelector("input[name=sx]:checked").value};
   $("who").innerHTML=`<b>${esc(P.name||"未填姓名")}</b>　${P.sx}　${y}年${m}月${d}日`;
   $("mainNum").textContent=R.main;
-  $("xian").textContent=R.digits.filter(x=>x).join(" ");
+  $("xian").textContent=R.xian.join("、");
   $("hou").textContent=R.hou;
   $("bday").textContent=R.bday;
   $("lny").textContent=`${R.ly}（${R.by}）`;
-  $("kw").textContent=`${R.main} 號人・${N[R.main].kw}`;
-  $("formula").textContent=`${R.str.split("").join("+")} = ${R.hou} → ${R.main}`;
-  // 九宮
+  $("kw").textContent=`生命靈動數 ${R.main}・${N[R.main].kw}`;
+  $("formula").textContent=`${R.xian.join("+")} = ${R.hou}（後天數）→ ${R.houD.join("+")} = ${R.main}（生命靈動數）`;
+  $("zero").className="zero"+(R.has(0)?" on":"");
+  $("zero").innerHTML=`<span class="n">0</span><span class="marks">${markStr(0)}</span>`;
   const cells=$("cells");cells.innerHTML="";
-  const order=[1,4,7,2,5,8,3,6,9];
-  order.forEach(n=>{const c=document.createElement("div");c.className="cell"+(R.cnt[n]?" on":"")+(n===R.main?" main":"");
-    c.innerHTML=`<span class="n">${n}</span>${R.cnt[n]>1?`<span class="cnt">×${R.cnt[n]}</span>`:""}`;cells.appendChild(c)});
-  const cc=n=>[pos[n][0]*76+38,pos[n][1]*76+38];
-  $("lines").innerHTML=R.lines.map(l=>{const a=cc(+l.k[0]),b=cc(+l.k[2]);return `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" opacity=".55"/>`}).join("");
+  [1,4,7,2,5,8,3,6,9].forEach(n=>{const c=document.createElement("div");c.className="cell"+(R.has(n)?" on":"")+(n===R.main?" main":"");
+    c.innerHTML=`<span class="n">${n}</span><span class="marks">${markStr(n)}</span>`;cells.appendChild(c)});
+  const cc=n=>[pos[n][0]*84+42,pos[n][1]*84+38];
+  $("lines").innerHTML=R.lines.map(l=>{const a=cc(+l.k[0]),b=cc(+l.k[l.k.length-1]);return `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" opacity=".5"${l.k.length===2?' stroke-dasharray="6 6"':""}/>`}).join("");
   drawTab();
 }
-function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 
 function drawTab(){
-  $("tabs").innerHTML=TABS.map((t,i)=>`<button role="tab" aria-selected="${i===tab}" data-i="${i}">${t}</button>`).join("");
+  $("tabs").innerHTML=TABS.map((t,i)=>`<button role="tab" aria-selected="${i===tab}" data-i="${i}">${String(i+1).padStart(2,"0")} ${t}</button>`).join("");
   const o=$("out"),M=N[R.main];let h="";
   if(tab===0){
-    h=`<div class="prose"><h2>主命數 ${R.main}：${M.kw}</h2><p>${M.trait}</p>
-    <h3>天賦優勢</h3><p>${M.good}</p><h3>人生課題</h3><p>${M.lesson}</p>
-    <h3>適合方向</h3><p>${M.job}</p><h3>感情觀</h3><p>${M.love}</p></div>`;
+    h=`<div class="prose"><h2>生命靈動數【${R.main}】${M.kw}</h2>
+    <p><span class="pill gold">關鍵字</span> ${M.tags}</p>
+    <h3>性格特質</h3><p>${M.trait}</p>
+    <h3>需要留意的缺點</h3><p>${M.weak}</p>
+    <h3>愛情觀</h3><p>${M.love}</p>
+    <h3>適合的職業</h3><p>${M.job}</p>
+    <h3>一生的目標與使命</h3><p>${M.mission}</p>
+    <h3>做人處事之道</h3><dl class="kv"><dt>學習方向</dt><dd>${M.learn}</dd><dt>溝通之道</dt><dd>${M.talk}</dd><dt>行銷相處法</dt><dd>${M.sell}</dd><dt>開運色彩</dt><dd>${M.color}</dd></dl></div>`;
   }else if(tab===1){
-    const hs=String(R.hou).split("").map(Number);
-    h=`<div class="prose"><h2>後天數 ${R.hou}</h2><p>後天數是生日所有數字的總和，代表後天發展出的能力與面對外在世界的方式。${hs.length>1?`十位數 <b>${hs[0]}</b> 是外在表現，個位數 <b>${hs[1]}</b> 是內在動力，兩者合成主命數 ${R.main}。`:""}</p></div>
-    <div class="cards">${hs.map((x,i)=>x?`<div class="card"><h4>${hs.length>1?(i?"個位":"十位"):"後天"} ${x}<span class="tag">${N[x].kw}</span></h4><p>${N[x].good}</p></div>`:"").join("")}
-    <div class="card hit"><h4>生日數 ${R.bday}<span class="tag">${N[R.bday].kw}</span></h4><p>出生日（${P.d} 日）化約而來，代表與生俱來的小天賦：${N[R.bday].good}。</p></div></div>`;
+    const ds=[...new Set(R.houD)];
+    h=`<div class="prose"><h2>後天數 ${R.hou} 與生命靈動數 ${R.main}</h2><p>後天數（△）與生命靈動數（□）代表後天要面對的考驗與功課。好的特質善加運用、弱點及早調整，就不容易被命運牽著走。</p></div>
+    <div class="cards">${ds.map(x=>x===0?`<div class="card"><h4>九宮中的 △0<span class="tag">忙碌・機緣</span></h4><p>${ZERO.after}</p></div>`:`<div class="card${x===R.main?" hit":""}"><h4>九宮中的 △${x}<span class="tag">${N[x].kw}</span></h4><ul><li>容易出現：${N[x].tags}</li><li>${N[x].learn}</li><li>${N[x].after}</li></ul></div>`).join("")}
+    ${ds.includes(R.main)?"":`<div class="card hit"><h4>□${R.main} 生命靈動數<span class="tag">${M.kw}</span></h4><ul><li>${M.learn}</li><li>${M.after}</li></ul></div>`}
+    <div class="card"><h4>生日數 ${R.bday}<span class="tag">${N[R.bday].kw}</span></h4><p>出生日 ${P.d} 日化約而來，代表與生俱來的小天賦：${N[R.bday].trait.split("，")[0]}。</p></div></div>`;
   }else if(tab===2){
-    h=`<h2>九宮連線</h2><p class="prose">把先天數、後天數與主命數放入九宮格，三格都出現就形成一條連線，代表比較容易發揮的才能。你有 <b>${R.lines.length}</b> 條連線。</p>
-    <div class="cards">${LINES.map(l=>{const on=R.lines.includes(l);return `<div class="card${on?" hit":""}"><h4>${l.name}<span class="tag">${l.k.split("").join("-")}${on?"・已連線":""}</span></h4><p>${l.d}</p></div>`}).join("")}</div>`;
+    h=`<h2>先、後天與生命數九宮連線</h2><p class="prose">把先天數（○）、後天數（△）、生命靈動數（□）放入九宮，三格都有數字就形成連線，代表一生中特別容易發揮的機會點。你有 <b>${R.lines.length}</b> 條連線。</p>
+    <div class="cards">${LINES.map(l=>{const on=R.lines.includes(l);return `<div class="card${on?" hit":""}"><h4>${l.k.split("").join("-")}　${l.alias}${on?'<span class="pill ok">已連線</span>':""}</h4><p>${l.name}：${l.d}</p></div>`}).join("")}</div>`;
   }else if(tab===3){
-    h=`<h2>空缺數與養生關注</h2><p class="prose">${R.missing.length?`九宮中空缺的數字是 <b>${R.missing.join("、")}</b>，代表較需要後天練習的特質。`:"九宮格九個數字都有出現，特質相當全面。"}數字重複越多，該特質越強，也可能用力過猛。</p>
-    <div class="tbl"><table><thead><tr><th>數字</th><th>出現次數</th><th>狀態</th><th>傳統對應部位</th><th>建議</th></tr></thead><tbody>
-    ${[1,2,3,4,5,6,7,8,9].map(i=>{const c=R.cnt[i];const st=c===0?"空缺":c>=3?"過強":"平衡";const tip=c===0?`多練習：${N[i].good.split("、")[0]}`:c>=3?`留意：${N[i].lesson.split("，")[0]}`:"維持即可";return `<tr${c===0||c>=3?' class="now"':""}><td class="num">${i}</td><td class="num">${c}</td><td>${st}</td><td>${N[i].body}</td><td>${tip}</td></tr>`}).join("")}
-    </tbody></table></div><p class="note">部位對應為生命靈數的傳統說法，僅供參考，不是醫療判斷；身體有狀況請諮詢醫師。</p>`;
-  }else if(tab===4){
-    const ex=[R.main,R.bday,...R.missing.slice(0,2)];const uniq=[...new Set(ex)];
-    h=`<h2>色彩能量</h2><div class="cards">${uniq.map(n=>`<div class="card"><div class="swatch"><div class="chip" style="background:${N[n].hex}"></div><div><h4>${N[n].color}</h4><p class="tag">${n===R.main?"主命數":n===R.bday?"生日數":"補足空缺"} ${n}</p></div></div><p style="margin-top:8px">${N[n].cmean}</p></div>`).join("")}</div>
-    <p class="note">主命數色可作為日常主色；空缺數色可用在配件、桌面小物上補強能量。</p>`;
-  }else if(tab===5){
-    const yrs=[-1,0,1,2,3,4,5,6,7].map(k=>R.by+k);
-    h=`<h2>流年運勢</h2><p class="formula">流年數 = 出生月 + 出生日 + 流年年份，各位數相加後化約</p>
-    <div class="tbl"><table><thead><tr><th>年份</th><th>流年數</th><th>主題</th><th>說明</th></tr></thead><tbody>
-    ${yrs.map(yy=>{const n=R.lnY(yy);return `<tr${yy===R.by?' class="now"':""}><td class="num">${yy}</td><td class="num">${n}</td><td>${YEAR[n][0]}</td><td>${YEAR[n][1]}</td></tr>`}).join("")}
+    const tri=D10.filter(i=>R.mk[i].t), lack=R.missing;
+    const rows=[...new Set([...tri,R.main,...lack])];
+    h=`<h2>從命盤九宮看先天潛在病源</h2>
+    <dl class="kv" style="margin-bottom:12px"><dt>三角形 △</dt><dd>${tri.join("、")}　<span class="note">後天容易出狀況，要養生保健</span></dd><dt>正方形 □</dt><dd>${R.main}　<span class="note">一輩子要維護的部位</span></dd><dt>缺數</dt><dd>${lack.join("、")||"無"}　<span class="note">可用食療、營養或顏色補強</span></dd></dl>
+    <div class="tbl"><table><thead><tr><th>數字</th><th>類別</th><th>五行</th><th>對應部位</th><th>容易出現</th><th>保養之道</th></tr></thead><tbody>
+    ${rows.map(i=>{const t=lack.includes(i)?"缺數":i===R.main&&!R.mk[i].t?"□":R.mk[i].t&&i===R.main?"△□":"△";const g=ORGAN[i];return `<tr class="${lack.includes(i)?"lack":"now"}"><td class="num">${i}</td><td>${t}</td><td>${g[0]}</td><td>${g[1]}</td><td>${g[2]}</td><td>${g[3]}</td></tr>`}).join("")}
     </tbody></table></div>
-    <h3>${R.by} 年流月</h3><div class="tbl"><table><thead><tr><th>月</th><th>流月數</th><th>重點</th></tr></thead><tbody>
-    ${Array.from({length:12},(_,i)=>{const n=red(R.ly+i+1);return `<tr${i+1===R.bm?' class="now"':""}><td class="num">${i+1} 月</td><td class="num">${n}</td><td>${YEAR[n][0]}：${YEAR[n][1]}</td></tr>`}).join("")}
+    <h3>五行與健康運勢</h3><p class="prose">五行之氣有缺，或同一行數字出現三次以上，都代表氣場失衡，運勢與健康容易受影響。</p>
+    <div class="tbl"><table><thead><tr><th>五行</th><th>數字</th><th>臟腑</th><th>代表</th><th>情緒</th><th>調和</th><th>你的數量</th></tr></thead><tbody>
+    ${WX.map(w=>{const ds=w[1].split("、").map(Number);const c=ds.reduce((a,x)=>a+R.mk[x].o+R.mk[x].t+R.mk[x].s,0);return `<tr class="${c===0?"lack":c>=3?"now":""}"><td>${w[0]}</td><td class="num">${w[1]}</td><td>${w[2]}</td><td>${w[3]}</td><td>${w[4]}</td><td>${w[5]}</td><td class="num">${c}${c===0?' <span class="pill warn">缺</span>':c>=3?' <span class="pill gold">過旺</span>':""}</td></tr>`}).join("")}
+    </tbody></table></div>
+    <p class="note">部位對應為生命靈數與五行的傳統說法，僅供參考，不是醫療判斷；身體不適請就醫。</p>`;
+  }else if(tab===4){
+    const lack=R.missing.filter(x=>x>0);
+    h=`<h2>生命秘數與色彩能量</h2><p class="prose">不同顏色有不同能量。生命靈動數的顏色是你的本命色；缺數的顏色可以用在穿著、配件、辦公桌與居家空間，補足欠缺的能量。</p>
+    <div class="cards"><div class="card hit"><div class="swatch"><div class="chip" style="background:${M.hex}"></div><div><h4>${M.color}</h4><p class="tag">本命色 □${R.main}</p></div></div><p style="margin-top:8px">${M.cmean}</p></div>
+    ${lack.map(n=>`<div class="card"><div class="swatch"><div class="chip" style="background:${N[n].hex}"></div><div><h4>${N[n].color}</h4><p class="tag">補缺數 ${n}</p></div></div><p style="margin-top:8px">${N[n].lack}</p></div>`).join("")}</div>
+    ${lack.length?`<h3>補上缺數可以提升</h3><ul class="ul">${lack.map(n=>`<li>${N[n].add}：配戴或擺放 ${N[n].color} 開運小物、使用含 ${n} 的數字</li>`).join("")}</ul>`:"<p>九宮數字齊全，維持本命色即可。</p>"}`;
+  }else if(tab===5){
+    const Y=YEAR[R.ly];
+    h=`<h2>用生命靈數分析流年、流月運勢</h2>
+    <div class="hero-year"><div class="yn">${R.ly}</div><div><b>${R.by} 年流年走到【${R.ly} ${Y.n}】</b><p class="formula" style="margin:0">流年數 = ${P.m}月 + ${P.d}日 + ${R.by}，各位數相加化約</p></div></div>
+    <p class="prose">${Y.d}</p>
+    <h3>從業務角度看 ${R.ly} 號流年</h3><ul class="ul">${Y.biz.map(x=>`<li>${x}</li>`).join("")}</ul>
+    <h3>${R.by} 年流月</h3><div class="tbl"><table><thead><tr><th>月份</th><th>流月數</th><th>月運</th><th>說明</th></tr></thead><tbody>
+    ${Array.from({length:12},(_,i)=>{const n=red(R.ly+i+1);return `<tr${i+1===R.bm?' class="now"':""}><td class="num">${i+1} 月</td><td class="num">${n}</td><td>${MONTH[n][0]}</td><td>${MONTH[n][1]}</td></tr>`}).join("")}
+    </tbody></table></div>
+    <h3>九年循環</h3><div class="tbl"><table><thead><tr><th>年份</th><th>流年數</th><th>階段</th></tr></thead><tbody>
+    ${[-1,0,1,2,3,4,5,6,7].map(k=>{const yy=R.by+k,n=R.lnY(yy);return `<tr${k===0?' class="now"':""}><td class="num">${yy}</td><td class="num">${n}</td><td>${YEAR[n].n}</td></tr>`}).join("")}
     </tbody></table></div>`;
   }else if(tab===6){
-    const lucky=[R.main,R.bday,R.ly];
-    const fill=R.missing;
-    h=`<div class="prose"><h2>運用數字改運</h2><p>日常常用的數字（手機末碼、車牌、密碼、門牌、樓層）可以多選用與自己共振的數字，或用來補足空缺數。</p>
-    <h3>本命幸運數字</h3><p class="combo">${[...new Set(lucky)].join(" ・ ")}</p><p>主命數 ${R.main}、生日數 ${R.bday}、今年流年數 ${R.ly}。</p>
-    <h3>建議補強的數字</h3><p>${fill.length?`<span class="combo">${fill.join(" ・ ")}</span><br>可在日常數字中刻意加入，幫助培養：${fill.map(n=>N[n].kw).join("、")}。`:"沒有空缺數，維持現有平衡即可。"}</p>
-    <h3>可補成連線的組合</h3><ul class="ul">${LINES.filter(l=>!R.lines.includes(l)).map(l=>{const need=l.k.split("").filter(c=>!R.cnt[c]);return need.length===1?`<li>加入 <b>${need[0]}</b> 可補成「${l.name}」（${l.k.split("").join("-")}）</li>`:""}).join("")||"<li>目前沒有只差一個數字的連線。</li>"}</ul></div>`;
+    const combos=luckyCombos(R);
+    h=`<h2>運用數字改運建議</h2>
+    <p class="prose">把先天數放進洛書九宮（任一行、列、斜線相加都是 15），八條線代表人生八大運。每條線缺少的數字，就是需要後天補強的地方。</p>
+    <div class="tbl"><table><thead><tr><th>洛書線</th><th>位置</th><th>缺數</th></tr></thead><tbody>
+    ${R.ls.map(l=>`<tr class="${l.miss.length?"lack":""}"><td class="num">${l.k.split("").join("-")}</td><td>${l.nm}</td><td class="num">${l.miss.join("")||"齊全"}</td></tr>`).join("")}
+    </tbody></table></div>
+    <p class="formula">缺數排列：${R.ls.map(l=>l.miss.join("")).filter(Boolean).join(" ")||"無"}</p>
+    <h3>一生最幸運數字</h3>
+    <p>${R.n1?`<span class="combo" style="font-size:32px">${R.n1}</span>　在八大運中最常出現的缺數，補上它的效果最大。`:"八大運都齊全，以生命靈動數 "+R.main+" 為幸運數。"}</p>
+    <h3>開運數字組合</h3><p class="combo">${combos.join("　")}</p>
+    <p class="note">由九宮缺數與最幸運數字排列而成，可用在手機號碼、車牌、密碼、帳號或門牌尾數。</p>`;
   }else if(tab===7){
     const g=GOALS[goalSel];
-    const score=c=>{const s=c.split("").map(Number);return (s.includes(R.main)?1:0)+s.filter(x=>R.missing.includes(x)).length};
+    const score=c=>{const s=c.split("").map(Number);return (s.includes(R.main)?1:0)+(s.includes(R.n1)?1:0)+s.filter(x=>R.missing.includes(x)).length};
     const top=g.c.filter(c=>score(c)>0).sort((a,b)=>score(b)-score(a)).slice(0,6);
-    h=`<h2>心想事成數字之組合</h2><p class="prose">選擇想加強的願望，下方是該願望的吉祥四碼組合，可用在手機末碼、車牌、密碼、證件或各種數字組合中，盡量從中挑選。</p>
-    <div class="seg" style="flex-wrap:wrap;margin-bottom:14px" id="goalSeg">${GOALS.map((x,i)=>`<button type="button" data-g="${i}" style="${i===goalSel?"background:var(--accent);color:var(--on);border-color:var(--accent)":""}">${x.t}</button>`).join("")}</div>
+    h=`<h2>心想事成數字之組合</h2><p class="prose">選擇想加強的願望，在個人證件或各種數字組合中，盡量從下列吉祥組合中挑選。</p>
+    <div class="goalbar" id="goalbar">${GOALS.map((x,i)=>`<button type="button" data-g="${i}" aria-pressed="${i===goalSel}">${x.t}</button>`).join("")}</div>
     <h3>${g.t}・為你推薦</h3>
     <p>${top.length?`<span class="combo">${top.join("　")}</span>`:"—"}</p>
-    <p class="note" style="margin-top:2px">推薦依據：含主命數 ${R.main}${R.missing.length?`或空缺數 ${R.missing.join("、")}`:""} 的組合優先。</p>
+    <p class="note" style="margin-top:2px">推薦依據：含生命靈動數 ${R.main}、最幸運數字 ${R.n1||"—"} 或缺數的組合優先。</p>
     <h3>全部組合（${g.c.length} 組）</h3>
-    <div style="display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums">${g.c.map(c=>`<span style="${top.includes(c)?"color:var(--gold);font-weight:500":""}">${c}</span>`).join("")}</div>`;
+    <div class="nums">${g.c.map(c=>`<span class="${top.includes(c)?"hl":""}">${c}</span>`).join("")}</div>`;
   }else{
-    h=`<div class="prose"><h2>西方畢達哥拉斯觀點</h2><p>${M.west}。</p>
-    ${R.master?`<p>你的總和為 <b>${R.master}</b>，在西方數字學中屬於「卓越數（Master Number）」，通常不再化約，代表較高的潛能與相對的壓力：${R.master===11?"11 是直覺與啟發者，敏感而具感召力":R.master===22?"22 是大建築師，能把遠大理想落實":"33 是大師導師，以愛與服務影響他人"}。</p>`:`<p>你的總和 ${R.hou} 不是卓越數（11、22、33），以 ${R.main} 解讀即可。</p>`}
-    <p>西方系統著重主命數（Life Path）與生日數（Birthday Number），把人生看作 1 到 9 的循環，每個流年都是這個循環中的一站；東方的九宮連線則更重視數字之間的組合關係。兩者可以互相參照。</p></div>`;
+    const z=zodiac(P.m,P.d), dn=red(P.d), card=P.d<=21?P.d:(P.d===22?0:dsum(P.d));
+    h=`<div class="prose"><h2>用西方觀點看你的一生特質</h2>
+    <dl class="kv"><dt>星座</dt><dd>${z[0]}（守護星 ${z[1]}）</dd><dt>生日數字</dt><dd>${P.d} 日 → ${dn}，受${N[dn].planet}影響，${N[dn].west}</dd><dt>生命數</dt><dd>${R.main}（${N[R.main].planet}）</dd><dt>塔羅象意</dt><dd>${card} 號牌「${TAROT[card]}」</dd></dl>
+    <h3>一生總合特質</h3><p>${P.m}月${P.d}日出生的人，同時帶有${z[0]}與數字 ${dn} 的特質。${N[dn].trait}再加上生命數 ${R.main} 的「${N[R.main].kw}」，${N[R.main].mission}</p>
+    <h3>別人看你的優點</h3><p>${N[dn].tags.split("、").slice(0,3).join("、")}。</p>
+    <h3>別人看你的缺點</h3><p>${N[dn].tags.split("、").slice(-2).join("、")}。</p>
+    <h3>良心建議</h3><p>${N[dn].learn}${N[R.main].learn}</p>
+    ${R.master?`<h3>卓越數 ${R.master}</h3><p>你的後天數是西方數字學的卓越數，代表較高的潛能與相對的壓力：${R.master===11?"11 是直覺與啟發者，敏感而具感召力":R.master===22?"22 是大建築師，能把遠大理想落實":"33 是大師導師，以愛與服務影響他人"}。</p>`:""}
+    <h3>適合的戀愛與交友對象</h3><p>生日數字為 <b>${[...new Set([dn,(dn+3-1)%9+1,(dn+6-1)%9+1])].join("、")}</b> 的人與你最合拍（同一三分組），例如 ${[...new Set([dn,(dn+3-1)%9+1,(dn+6-1)%9+1])].map(k=>`${k}、${k+9}${k+18<=31?"、"+(k+18):""} 日`).join("；")} 出生。</p></div>`;
   }
   o.innerHTML=h;
-  const gs=$("goalSeg");if(gs)gs.addEventListener("click",e=>{const b=e.target.closest("[data-g]");if(!b)return;goalSel=+b.dataset.g;drawTab()});
+  const gb=$("goalbar");if(gb)gb.addEventListener("click",e=>{const b=e.target.closest("[data-g]");if(!b)return;goalSel=+b.dataset.g;drawTab()});
 }
 
-// 紀錄
+/* ===== 紀錄 ===== */
 const KEY="lifenum-records";
 function getRecs(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return []}}
 function setRecs(a){try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}}
@@ -338,7 +532,7 @@ $("recs").addEventListener("click",e=>{
 });
 $("save").addEventListener("click",()=>{render();const a=getRecs().filter(r=>!(r.name===P.name&&r.y===P.y&&r.m===P.m&&r.d===P.d));a.unshift(P);setRecs(a.slice(0,50));drawRecs();$("save").textContent="已存入";setTimeout(()=>$("save").textContent="存入紀錄",1400)});
 
-// 表單
+/* ===== 表單 ===== */
 function opts(el,a,b){el.innerHTML="";for(let i=a;i<=b;i++)el.add(new Option(i,i))}
 function fillDays(){const y=+$("yy").value,m=+$("mm").value,cur=+$("dd").value||1;const max=new Date(y,m,0).getDate();opts($("dd"),1,max);$("dd").value=Math.min(cur,max)}
 opts($("yy"),1921,2060);opts($("mm"),1,12);
